@@ -47,6 +47,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QmlFileCache.cs" />
     <Compile Include="qml_dbg_toolsPackage.cs" />
     <Compile Include="QmlDebugWindow.cs" />
     <Compile Include="QmlDebugWindowCommand.cs" />

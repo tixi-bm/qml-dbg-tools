@@ -3,32 +3,132 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:qml_dbg_tools"
              xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
-             Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
-             Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
+             Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
+             Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300"
              Name="MyToolWindow">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8">C++ Stack Trace</TextBlock>
+        <Grid Grid.Row="0" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-        <Button Grid.Row="1"
-                Name="refreshButton"
-                Content="Refresh Stack Trace"
-                Width="150"
-                Height="28"
-                Margin="0,0,0,8"
-                HorizontalAlignment="Left"
-                Click="refreshButton_Click" />
+            <CheckBox Grid.Column="0"
+                      Name="showQtFramesCheckBox"
+                      Content="Show Qt Frames"
+                      VerticalAlignment="Center"
+                      HorizontalAlignment="Left"
+                      Background="Transparent"
+                      Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"
+                      Click="showQtFramesCheckBox_Click" />
 
-        <ListBox Grid.Row="2"
+            <Button Grid.Column="1"
+                    Name="refreshButton"
+                    Width="24"
+                    Height="24"
+                    Margin="8,0,0,0"
+                    Padding="0"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Right"
+                    ToolTip="Refresh Stack Trace"
+                    Background="Transparent"
+                    BorderBrush="Transparent"
+                    Click="refreshButton_Click">
+                <TextBlock Text="&#xE72C;"
+                           FontFamily="Segoe MDL2 Assets"
+                           FontSize="14"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"
+                           Foreground="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+            </Button>
+        </Grid>
+
+        <ListBox Grid.Row="1"
                  Name="stackTraceList"
-                 HorizontalContentAlignment="Stretch" />
+                 HorizontalContentAlignment="Stretch"
+                 Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
+                 BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}"
+                 BorderThickness="0"
+                 Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"
+                 PreviewMouseLeftButtonUp="stackTraceList_PreviewMouseLeftButtonUp">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}" />
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="Margin" Value="0" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <Border BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}"
+                                        BorderThickness="0,0,0,1"
+                                        Background="Transparent">
+                                    <ContentPresenter HorizontalAlignment="Stretch"
+                                                      VerticalAlignment="Center"
+                                                      Margin="0" />
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.Resources>
+                <DataTemplate DataType="{x:Type local:StackTraceEntry}">
+                    <Grid Margin="0,0,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0"
+                                Margin="0,0,10,0"
+                                Padding="6,2"
+                                VerticalAlignment="Center"
+                                BorderThickness="0,0,1,0"
+                                BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}"
+                                Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}">
+                            <TextBlock Text="{Binding Language}"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"
+                                       TextWrapping="NoWrap" />
+                        </Border>
+
+                        <TextBlock Grid.Column="1"
+                                   Margin="0,0,10,0"
+                                   VerticalAlignment="Center"
+                                   FontSize="13"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"
+                                   Text="{Binding Module}"
+                                   TextTrimming="CharacterEllipsis" />
+
+                        <TextBlock Grid.Column="2"
+                                   Margin="0,0,10,0"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"
+                                   Text="|" />
+
+                        <TextBlock Grid.Column="3"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"
+                                   Text="{Binding FunctionName}"
+                                   TextTrimming="CharacterEllipsis" />
+                    </Grid>
+                </DataTemplate>
+            </ListBox.Resources>
+        </ListBox>
     </Grid>
 </UserControl>
