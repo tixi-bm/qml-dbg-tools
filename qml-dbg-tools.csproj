@@ -46,7 +46,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="IQtSourceLocationEvaluator.cs" />
+    <Compile Include="IQtStackFrameContextEvaluator.cs" />
+    <Compile Include="IStackTraceEntryFactory.cs" />
+    <Compile Include="IStackTraceSourceResolver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QtSourceLocationEvaluator.cs" />
+    <Compile Include="QtStackFrameContextEvaluator.cs" />
     <Compile Include="QmlFileCache.cs" />
     <Compile Include="qml_dbg_toolsPackage.cs" />
     <Compile Include="QmlDebugWindow.cs" />
@@ -54,6 +60,8 @@
     <Compile Include="QmlDebugWindowControl.xaml.cs">
       <DependentUpon>QmlDebugWindowControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="StackTraceEntryFactory.cs" />
+    <Compile Include="StackTraceSourceResolver.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">

@@ -167,10 +167,14 @@ namespace qml_dbg_tools
                 }
 
                 StackFrame startFrame = debugger.CurrentStackFrame;
+                IStackTraceEntryFactory stackTraceEntryFactory = new StackTraceEntryFactory(
+                    new StackTraceSourceResolver(this.qmlFileCache),
+                    new QtSourceLocationEvaluator(),
+                    new QtStackFrameContextEvaluator());
 
                 foreach (StackFrame2 frame in currentThread.StackFrames)
                 {
-                    StackTraceEntry stackTraceEntry = this.CreateStackTraceEntry(frame, debugger, startFrame);
+                    StackTraceEntry stackTraceEntry = stackTraceEntryFactory.Create(frame, debugger, startFrame);
                     if (stackTraceEntry != null && this.ShouldDisplayEntry(stackTraceEntry))
                     {
                         this.stackTraceList.Items.Add(stackTraceEntry);
@@ -185,107 +189,6 @@ namespace qml_dbg_tools
             }
         }
 
-        private StackTraceEntry CreateStackTraceEntry(StackFrame2 frame, Debugger debugger, StackFrame startFrame)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            string moduleName = string.IsNullOrWhiteSpace(frame.Module) ? string.Empty : Path.GetFileName(frame.Module);
-            string functionName = string.IsNullOrWhiteSpace(frame.FunctionName) ? "<unknown function>" : frame.FunctionName;
-            string displayLanguage = string.IsNullOrWhiteSpace(frame.Language) ? string.Empty : frame.Language;
-            bool userCode = frame.UserCode;
-            StackTraceSourceLocation sourceLocation = null;
-
-            if (!string.IsNullOrWhiteSpace(frame.FileName) && frame.LineNumber > 0)
-            {
-                sourceLocation = new StackTraceSourceLocation(frame.FileName, (int)frame.LineNumber, 1);
-            }
-
-            sourceLocation = this.ResolveSourceLocation(sourceLocation, false);
-
-            if (!string.IsNullOrWhiteSpace(frame.Module))
-            {
-                if (moduleName == "Qt6Qml.dll" || moduleName == "Qt6Qmld.dll")
-                {
-                    string type = string.Empty;
-
-                    if (frame.FunctionName == "QQmlBinding::update")
-                    {
-                        type = "QQmlBinding";
-                    }
-
-                    if (frame.FunctionName == "QQmlBoundSignalExpression::evaluate")
-                    {
-                        type = "QQmlBoundSignalExpression";
-                    }
-
-                    if (type != string.Empty)
-                    {
-                        // Change into a frame of Qml.dll, so that the types are present.
-                        if (startFrame == debugger.CurrentStackFrame)
-                        {
-                            debugger.CurrentStackFrame = frame;
-                        }
-
-                        foreach (EnvDTE.Expression localValue in frame.Locals)
-                        {
-                            if (localValue.Name == "this")
-                            {
-                                StackTraceSourceLocation qmlSourceLocation = TryEvaluateSourceLocation(debugger, type, localValue.Value.Split(' ')[0]);
-                                if (qmlSourceLocation != null)
-                                {
-                                    sourceLocation = this.ResolveSourceLocation(qmlSourceLocation, true);
-                                    string qmlFunctionName = this.TryReadSourceLine(sourceLocation);
-                                    if (!string.IsNullOrWhiteSpace(qmlFunctionName))
-                                    {
-                                        functionName = qmlFunctionName;
-                                    }
-
-                                    if (sourceLocation != null && !string.IsNullOrWhiteSpace(sourceLocation.FilePath))
-                                    {
-                                        string qmlFileName = Path.GetFileName(sourceLocation.FilePath);
-                                        if (!string.IsNullOrWhiteSpace(qmlFileName))
-                                        {
-                                            moduleName = qmlFileName;
-                                        }
-                                    }
-
-                                    displayLanguage = "QML";
-                                    userCode = true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return new StackTraceEntry(moduleName, functionName, displayLanguage, sourceLocation, userCode);
-        }
-
-        private StackTraceSourceLocation ResolveSourceLocation(StackTraceSourceLocation sourceLocation, bool expectQml)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            if (sourceLocation == null || string.IsNullOrWhiteSpace(sourceLocation.FilePath))
-            {
-                return sourceLocation;
-            }
-
-            bool isQrcPath = sourceLocation.FilePath.StartsWith("qrc:/", StringComparison.OrdinalIgnoreCase);
-            bool isQmlLikePath = isQrcPath || sourceLocation.FilePath.EndsWith(".qml", StringComparison.OrdinalIgnoreCase);
-
-            if (!isQmlLikePath && !expectQml)
-            {
-                return sourceLocation;
-            }
-
-            string resolvedPath = this.qmlFileCache?.TryResolvePath(sourceLocation.FilePath);
-            if (string.IsNullOrWhiteSpace(resolvedPath))
-            {
-                return sourceLocation;
-            }
-
-            return new StackTraceSourceLocation(resolvedPath, sourceLocation.Line, sourceLocation.Column);
-        }
 
         private bool ShouldDisplayEntry(StackTraceEntry entry)
         {
@@ -339,33 +242,6 @@ namespace qml_dbg_tools
             return !string.IsNullOrWhiteSpace(functionName)
                 && (functionName.EndsWith("::qt_metacall", StringComparison.OrdinalIgnoreCase)
                     || functionName.EndsWith("::qt_static_metacall", StringComparison.OrdinalIgnoreCase));
-        }
-
-        private string TryReadSourceLine(StackTraceSourceLocation sourceLocation)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            if (sourceLocation == null || !sourceLocation.IsValid || !File.Exists(sourceLocation.FilePath))
-            {
-                return string.Empty;
-            }
-
-            try
-            {
-                string[] lines = File.ReadAllLines(sourceLocation.FilePath);
-                int lineIndex = sourceLocation.Line - 1;
-
-                if (lineIndex < 0 || lineIndex >= lines.Length)
-                {
-                    return string.Empty;
-                }
-
-                return lines[lineIndex].Trim();
-            }
-            catch
-            {
-                return string.Empty;
-            }
         }
 
         private bool IsPathInCurrentSolution(string path)
@@ -440,56 +316,6 @@ namespace qml_dbg_tools
             }
         }
 
-        private static StackTraceSourceLocation TryEvaluateSourceLocation(Debugger debugger, string type, string address)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            try
-            {
-                EnvDTE.Expression sourceLocationExpression = debugger.GetExpression($"(({type}*){address})->sourceLocation().sourceFile.d.ptr", true);
-                if (sourceLocationExpression == null || !sourceLocationExpression.IsValidValue)
-                {
-                    return null;
-                }
-
-                if (string.IsNullOrWhiteSpace(sourceLocationExpression.Value))
-                {
-                    return null;
-                }
-
-                string[] parts = sourceLocationExpression.Value.Split(' ');
-
-                if (parts.Length >= 2)
-                {
-                    parts[0] = "";
-                }
-
-                string sourceLocation = string.Join(" ", parts);
-                sourceLocation = sourceLocation.Substring(3, sourceLocation.Length - 4);
-
-                EnvDTE.Expression lineExpression = debugger.GetExpression($"(({type}*){address})->sourceLocation().line");
-                EnvDTE.Expression columnExpression = debugger.GetExpression($"(({type}*){address})->sourceLocation().column");
-
-                int line = ParseDebuggerInteger(lineExpression);
-                int column = ParseDebuggerInteger(columnExpression);
-
-                return new StackTraceSourceLocation(sourceLocation, line, column);
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        private static int ParseDebuggerInteger(EnvDTE.Expression debuggerExpression)
-        {
-            if (debuggerExpression == null || !debuggerExpression.IsValidValue)
-            {
-                return 0;
-            }
-
-            return int.TryParse(debuggerExpression.Value, out int parsedValue) ? parsedValue : 0;
-        }
     }
 
     public sealed class StackTraceEntry

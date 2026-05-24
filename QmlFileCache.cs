@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace qml_dbg_tools
 {
-    internal sealed class QmlFileCache
+    public sealed class QmlFileCache
     {
         private readonly DTE2 dte;
         private readonly object cacheLock = new object();
