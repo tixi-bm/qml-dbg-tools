@@ -23,7 +23,7 @@ namespace qml_dbg_tools
         /// </summary>
         public QmlDebugWindow() : base(null)
         {
-            this.Caption = "QML Debug Window";
+            this.Caption = "C++/QML Call Stack";
 
             // This is the user control hosted by the tool window; Note that, even if this class implements IDisposable,
             // we are not calling Dispose on this object. This is because ToolWindowPane calls Dispose on

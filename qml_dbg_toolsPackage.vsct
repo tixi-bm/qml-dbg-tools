@@ -34,7 +34,7 @@
     with command ids defined by other packages. -->
 
     <Groups>
-      <Group guid="guidqml_dbg_toolsPackageCmdSet" id="MyMenuGroup" priority="0x0600">
+      <Group guid="guidqml_dbg_toolsPackageCmdSet" id="QmlDebugMenuGroup" priority="0x0600">
         <Parent guid="guidVSDebugGroup" id="IDM_DEBUG_WINDOWS" />
       </Group>
     </Groups>
@@ -44,10 +44,10 @@
               id="QmlDebugWindowCommandId"
               priority="0x0100"
               type="Button">
-        <Parent guid="guidqml_dbg_toolsPackageCmdSet" id="MyMenuGroup" />
+        <Parent guid="guidqml_dbg_toolsPackageCmdSet" id="QmlDebugMenuGroup" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
-          <ButtonText>QML Debug Tools</ButtonText>
+          <ButtonText>C++/QML Call Stack</ButtonText>
         </Strings>
       </Button>
     </Buttons>
@@ -59,7 +59,7 @@
             bitmap strip containing the bitmaps and then there are the numeric ids of the elements used
             inside a button definition. An important aspect of this declaration is that the element id
             must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
-      <Bitmap guid="guidImages" href="Resources\QmlDebugWindowCommand.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough"/>
+      <Bitmap guid="guidImages" href="Resources\QmlLogo.png" usedList="bmpPic1"/>
     </Bitmaps>
   </Commands>
 
@@ -70,16 +70,11 @@
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidqml_dbg_toolsPackageCmdSet" value="{785a61e9-0485-40e5-b359-f53548f57e0d}">
       <IDSymbol name="QmlDebugWindowCommandId" value="0x0100" />
-      <IDSymbol name="MyMenuGroup" value="0x1020" />
+      <IDSymbol name="QmlDebugMenuGroup" value="0x1020" />
     </GuidSymbol>
 
     <GuidSymbol name="guidImages" value="{af561836-4006-4c5f-9824-9db9f54984d1}" >
       <IDSymbol name="bmpPic1" value="1" />
-      <IDSymbol name="bmpPic2" value="2" />
-      <IDSymbol name="bmpPicSearch" value="3" />
-      <IDSymbol name="bmpPicX" value="4" />
-      <IDSymbol name="bmpPicArrows" value="5" />
-      <IDSymbol name="bmpPicStrikethrough" value="6" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

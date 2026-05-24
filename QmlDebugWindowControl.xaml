@@ -62,24 +62,9 @@
                  PreviewMouseLeftButtonUp="stackTraceList_PreviewMouseLeftButtonUp">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
-                    <Setter Property="Background" Value="Transparent" />
-                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}" />
                     <Setter Property="Padding" Value="0" />
                     <Setter Property="Margin" Value="0" />
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="ListBoxItem">
-                                <Border BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}"
-                                        BorderThickness="0,0,0,1"
-                                        Background="Transparent">
-                                    <ContentPresenter HorizontalAlignment="Stretch"
-                                                      VerticalAlignment="Center"
-                                                      Margin="0" />
-                                </Border>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
                 </Style>
             </ListBox.ItemContainerStyle>
             <ListBox.Resources>
@@ -98,11 +83,10 @@
                                 VerticalAlignment="Center"
                                 BorderThickness="0,0,1,0"
                                 BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}"
-                                Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}">
+                                Background="Transparent">
                             <TextBlock Text="{Binding Language}"
                                        FontSize="11"
                                        FontWeight="SemiBold"
-                                       Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"
                                        TextWrapping="NoWrap" />
                         </Border>
 
@@ -111,19 +95,16 @@
                                    VerticalAlignment="Center"
                                    FontSize="13"
                                    FontWeight="SemiBold"
-                                   Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"
                                    Text="{Binding Module}"
                                    TextTrimming="CharacterEllipsis" />
 
                         <TextBlock Grid.Column="2"
                                    Margin="0,0,10,0"
                                    VerticalAlignment="Center"
-                                   Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"
                                    Text="|" />
 
                         <TextBlock Grid.Column="3"
                                    VerticalAlignment="Center"
-                                   Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"
                                    Text="{Binding FunctionName}"
                                    TextTrimming="CharacterEllipsis" />
                     </Grid>
